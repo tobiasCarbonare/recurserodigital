@@ -7,9 +7,9 @@ export const AUTH_ENDPOINTS = {
   LOGOUT: '/logout'
 };
 
-export const apiRequest = async (endpoint, options = {}) => {
+export const apiRequest = async (endpoint, options = {}, retries = 2) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  
+
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
@@ -32,7 +32,10 @@ export const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
-    const response = await fetch(url, config);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(url, { ...config, signal: controller.signal });
+    clearTimeout(timeout);
     
     let data;
     const contentType = response.headers.get('content-type');
@@ -60,6 +63,10 @@ export const apiRequest = async (endpoint, options = {}) => {
       data
     };
   } catch (error) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return apiRequest(endpoint, options, retries - 1);
+    }
     console.error('Error en la petición API:', error);
     throw error;
   }
