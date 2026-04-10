@@ -1,0 +1,12 @@
+[build]
+  base = "frontend/recursero-digital"
+  command = "npm run build"
+  publish = "frontend/recursero-digital/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
